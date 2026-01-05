@@ -1,0 +1,65 @@
+package crud
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/ekayesorko/gota/ctx"
+	"github.com/ekayesorko/gota/resterr"
+	"github.com/ekayesorko/gota/serializer"
+	"gorm.io/gorm"
+)
+
+type CommonService[T any] struct {
+	Repository CommonRepository[T]
+}
+
+func (s *CommonService[T]) Create(c ctx.Context, model ...*T) *resterr.RestError {
+	err := s.Repository.Create(c, model...)
+	if err != nil {
+		return resterr.NewInternalServerError(err)
+	}
+	return nil
+}
+
+func (s *CommonService[T]) Update(c ctx.Context, selector T, model *T) *resterr.RestError {
+	err := s.Repository.Update(c, selector, model)
+	if err != nil {
+		return resterr.NewInternalServerError(err)
+	}
+	return nil
+}
+
+func (s *CommonService[T]) GetByParam(c ctx.Context, param T) (*T, *resterr.RestError) {
+	item, err := s.Repository.GetByParam(c, param)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, resterr.NewInternalServerError(err)
+	}
+	if err != nil {
+		return nil, resterr.NewNotFoundError(fmt.Sprintf("%T", param))
+	}
+	return item, nil
+}
+
+func (s *CommonService[T]) ListByParam(c ctx.Context, param T) (serializer.ListResponse[T], *resterr.RestError) {
+	items, err := s.Repository.ListByParam(c, param)
+	if err != nil {
+		return serializer.ListResponse[T]{}, resterr.NewInternalServerError(err)
+	}
+	total, err := s.Repository.CountByParam(c, param)
+	if err != nil {
+		return serializer.ListResponse[T]{}, resterr.NewInternalServerError(err)
+	}
+	return serializer.ListResponse[T]{
+		Items: items,
+		Total: int64(total),
+	}, nil
+}
+
+func (s *CommonService[T]) FindIn(c ctx.Context, field string, value interface{}) ([]T, *resterr.RestError) {
+	res, err := s.Repository.FindIn(c, field, value)
+	if err != nil {
+		return nil, resterr.NewInternalServerError(err)
+	}
+	return res, nil
+}
