@@ -3,6 +3,8 @@ package resterr
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 	// "github.com/labstack/echo/v4"
 )
 
@@ -18,9 +20,9 @@ func (r *RestError) Error() string {
 	return fmt.Sprintf("Code: %d, Message: %s", r.Code, r.Message)
 }
 
-// func (r *RestError) Respond(c echo.Context) error {
-// 	return c.JSON(r.Code, *r)
-// }
+func (r *RestError) Respond(c echo.Context) error {
+	return c.JSON(r.Code, *r)
+}
 
 func NewInfraError(err error) *RestError {
 	return &RestError{

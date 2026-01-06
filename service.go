@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/ekayesorko/gota/resterr"
-	"github.com/ekayesorko/gota/serializer"
 	"gorm.io/gorm"
 )
 
@@ -40,16 +39,16 @@ func (s *CommonService[T]) GetByParam(c Context, param T) (*T, *resterr.RestErro
 	return item, nil
 }
 
-func (s *CommonService[T]) ListByParam(c Context, param T) (serializer.ListResponse[T], *resterr.RestError) {
+func (s *CommonService[T]) ListByParam(c Context, param T) (ListResponse[T], *resterr.RestError) {
 	items, err := s.Repository.ListByParam(c, param)
 	if err != nil {
-		return serializer.ListResponse[T]{}, resterr.NewInternalServerError(err)
+		return ListResponse[T]{}, resterr.NewInternalServerError(err)
 	}
 	total, err := s.Repository.CountByParam(c, param)
 	if err != nil {
-		return serializer.ListResponse[T]{}, resterr.NewInternalServerError(err)
+		return ListResponse[T]{}, resterr.NewInternalServerError(err)
 	}
-	return serializer.ListResponse[T]{
+	return ListResponse[T]{
 		Items: items,
 		Total: int64(total),
 	}, nil
